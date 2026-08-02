@@ -2053,15 +2053,38 @@ def _social_check_one(platform: dict, username: str, rs) -> dict | None:
         if r.status_code == platform["ok"]:
             not_found_clues = [
                 "page not found", "user not found", "doesn't exist",
-                "no user found", "404", "this account", "not available",
+                "no user found", "this account", "not available",
                 "nobody on reddit goes by that name",
                 "this account has been suspended",
                 "this account has been banned",
                 "sorry, nobody",
+                "couldn't find this account",
+                "this page isn't available",
+                "this content isn't available",
+                "profile not found",
+                "no results found",
+                "couldn't find",
+                "does not exist",
+                "account not found",
+                "user does not exist",
+                "we couldn't find",
+                "not found on",
             ]
             body = r.text.lower()
+
             if any(c in body for c in not_found_clues):
                 return None
+
+            must_have = {
+                "TikTok":    ["uniqueid", "@" + username.lower(), "tiktok"],
+                "Instagram": ["instagram", username.lower()],
+                "Twitter/X": ["twitter", username.lower()],
+            }
+            required = must_have.get(platform["name"])
+            if required:
+                if not any(req in body for req in required):
+                    return None
+
             return {"platform": platform["name"], "url": url, "status": r.status_code}
     except Exception:
         pass
