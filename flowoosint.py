@@ -211,17 +211,10 @@ LOGO_LINES = [
 
 def banner():
     os.system("cls" if os.name=="nt" else "clear")
-    print()
     for line in LOGO_LINES:
         print(ctr(line))
         time.sleep(0.04)
-    print()
-    print(ctr(f"{R}{'═'*60}{RE}"))
-    print(ctr(f"{Y}Advanced Web Reconnaissance & Intelligence Gatherer{RE}"))
-    print(ctr(f"{DIM}{W}For authorized security research and pentesting only{RE}"))
-    print(ctr(f"{R}{'═'*60}{RE}"))
-    print()
-    print(ctr(f"{DIM}{W}github.com/FlowThingy/FlowOsint{RE}"))
+    print(ctr(f"{DIM}{W}v2.01  ·  Advanced Web Recon & OSINT  ·  github.com/FlowThingy/FlowOsint{RE}"))
     print()
 
 
@@ -343,7 +336,6 @@ def draw_menu():
     total_nav = len(_ANSI_RE.sub("", nav + nav_r))
     gap = max(1, W_term - total_nav - 2)
     print(f"  {nav}{' '*gap}{nav_r}")
-    print()
 
     header_line = pad
     for i,(title,_) in enumerate(cols):
@@ -378,7 +370,6 @@ def draw_menu():
 
     print()
     sep()
-    print()
 
 
 UAS = [
@@ -3472,8 +3463,7 @@ def main():
         draw_menu()
 
         if CFG["target"]:
-            print(ctr(f"{DIM}{W}Current target: {BR}{CFG['target']}{RE}"))
-            print()
+            print(ctr(f"{DIM}{W}target: {BR}{CFG['target']}{RE}"))
 
         raw = input(
             f"  {R}┌─[{W}FlowOsint{R}]─[{W}v2.01{R}]{RE}\n"
