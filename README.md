@@ -73,8 +73,8 @@ No Git? Download the ZIP from the GitHub page, extract it, and open that folder.
 
 That's it. The launchers handle everything else automatically — they create a virtual environment, install all dependencies into it, and launch the tool. You never need to touch `pip` manually.
 
-**Windows** — double-click in File Explorer:
-```
+**Windows:**
+```cmd
 run.bat
 ```
 
