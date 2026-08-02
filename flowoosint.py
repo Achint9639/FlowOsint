@@ -2044,6 +2044,64 @@ def _social_check_one(platform: dict, username: str, rs) -> dict | None:
     return None
 
 
+def mod_username_search(username: str, session):
+    sect(f"Username Search — {username}")
+    rs      = getattr(session, "_requests_session", None)
+    if not rs:
+        err("No requests session available"); return []
+
+    found   = []
+    total   = len(SOCIAL_PLATFORMS)
+    _lock   = threading.Lock()
+    q       = queue.Queue()
+    for p in SOCIAL_PLATFORMS:
+        q.put(p)
+
+    with _RProgress(
+        SpinnerColumn(style="bold red"),
+        TextColumn("[bold white]{task.description}"),
+        BarColumn(bar_width=30, style="red", complete_style="bright_red"),
+        TaskProgressColumn(),
+        TimeElapsedColumn(),
+        console=_rc, transient=True,
+    ) as progress:
+        task = progress.add_task(
+            f"Checking {total} platforms for '{username}'", total=total)
+
+        def worker():
+            while True:
+                try:
+                    platform = q.get_nowait()
+                except queue.Empty:
+                    break
+                result = _social_check_one(platform, username, rs)
+                if result:
+                    with _lock:
+                        found.append(result)
+                        hit(f"{G}[FOUND]{RE} {BR}{result['platform']:<20}{RE} {W}{result['url']}")
+                        _db_insert_asset("social_profile", result["url"],
+                                         f"username:{username}")
+                progress.advance(task)
+                q.task_done()
+
+        pool = [threading.Thread(target=worker, daemon=True) for _ in range(20)]
+        for t in pool: t.start()
+        for t in pool: t.join()
+
+    if not found:
+        info(f"Username '{username}' not found on any checked platform")
+    else:
+        info(f"Found on {BR}{len(found)}{RE} platform(s):")
+        t = _RTable(box=_rbox.SIMPLE, style="dim", header_style="bold red")
+        t.add_column("Platform", style="bold white", width=20)
+        t.add_column("URL", style="cyan")
+        for r in found:
+            t.add_row(r["platform"], r["url"])
+        _rc.print(t)
+
+    return found
+
+
 def mod_shodan(domain, session):
     """
     Shodan InternetDB — free, no API key required.
