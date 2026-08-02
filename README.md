@@ -323,3 +323,12 @@ The authors and contributors of FlowOsint accept no liability for misuse. If you
 ---
 
 *FlowOsint v3.0 — github.com/FlowThingy/FlowOsint*
+
+---
+
+## Contributors
+
+| | Name | GitHub |
+|-|------|--------|
+| | **FlowThingy** | [@FlowThingy](https://github.com/FlowThingy) |
+| | **Jello** | [@jelloyfizz-jpg](https://github.com/jelloyfizz-jpg) |
