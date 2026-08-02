@@ -2102,6 +2102,84 @@ def mod_username_search(username: str, session):
     return found
 
 
+def mod_email_osint(email: str, session):
+    sect(f"Email OSINT — {email}")
+    rs = getattr(session, "_requests_session", None)
+    if not rs:
+        err("No requests session available"); return {}
+
+    results = {"email": email, "breaches": [], "accounts": [], "formats": []}
+
+    local, _, domain = email.partition("@")
+
+    info(f"Target: {W}{email}{RE}  local={BR}{local}{RE}  domain={BR}{domain}")
+
+    info(f"Checking HaveIBeenPwned for {W}{email}")
+    try:
+        r = rs.get(
+            f"https://haveibeenpwned.com/api/v3/breachedaccount/{requests.utils.quote(email)}",
+            headers={"User-Agent": "FlowOsint/2.01"},
+            timeout=8, verify=False
+        )
+        if r.status_code == 200:
+            breaches = r.json()
+            for b in breaches:
+                name = b.get("Name","?")
+                date = b.get("BreachDate","?")
+                hit(f"{BR}[BREACH]{RE} {W}{name}{RE}  {DIM}{date}")
+                results["breaches"].append({"name": name, "date": date})
+            info(f"Found in {BR}{len(breaches)}{RE} breach(es)")
+        elif r.status_code == 404:
+            hit(f"{G}Not found in any known breaches")
+        else:
+            warn(f"HIBP returned {r.status_code}")
+    except Exception as e:
+        warn(f"HIBP check failed: {e}")
+
+    info(f"Probing Gravatar for {W}{email}")
+    try:
+        import hashlib
+        md5 = hashlib.md5(email.strip().lower().encode()).hexdigest()
+        r = rs.get(
+            f"https://www.gravatar.com/{md5}.json",
+            timeout=6, verify=False
+        )
+        if r.status_code == 200:
+            data = r.json()
+            entry = data.get("entry", [{}])[0]
+            display = entry.get("displayName","")
+            username = entry.get("preferredUsername","")
+            profile = f"https://www.gravatar.com/{md5}"
+            hit(f"{G}[GRAVATAR]{RE} {W}{display or username}{RE} → {C}{profile}")
+            results["accounts"].append({"platform": "Gravatar", "url": profile,
+                                        "name": display or username})
+        else:
+            info("No Gravatar profile found")
+    except Exception as e:
+        warn(f"Gravatar check failed: {e}")
+
+    info(f"Generating common email format variations for {W}{domain}")
+    parts = local.replace(".", " ").replace("_", " ").replace("-", " ").split()
+    if len(parts) >= 2:
+        first, last = parts[0], parts[-1]
+        formats = [
+            f"{first}.{last}@{domain}",
+            f"{first}{last}@{domain}",
+            f"{last}.{first}@{domain}",
+            f"{first[0]}{last}@{domain}",
+            f"{first}.{last[0]}@{domain}",
+            f"{first[0]}.{last}@{domain}",
+        ]
+        for fmt in formats:
+            if fmt != email:
+                info(f"  {DIM}{fmt}")
+                results["formats"].append(fmt)
+
+    info(f"Email OSINT done — {len(results['breaches'])} breach(es)  "
+         f"{len(results['accounts'])} account(s) found")
+    return results
+
+
 def mod_shodan(domain, session):
     """
     Shodan InternetDB — free, no API key required.
