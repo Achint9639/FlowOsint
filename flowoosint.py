@@ -2054,6 +2054,10 @@ def _social_check_one(platform: dict, username: str, rs) -> dict | None:
             not_found_clues = [
                 "page not found", "user not found", "doesn't exist",
                 "no user found", "404", "this account", "not available",
+                "nobody on reddit goes by that name",
+                "this account has been suspended",
+                "this account has been banned",
+                "sorry, nobody",
             ]
             body = r.text.lower()
             if any(c in body for c in not_found_clues):
@@ -2064,7 +2068,36 @@ def _social_check_one(platform: dict, username: str, rs) -> dict | None:
     return None
 
 
-def mod_username_search(username: str, session):
+def _generate_username_variants(query: str) -> list:
+    query   = query.strip().lstrip("@")
+    if "/" in query:
+        query = query.rstrip("/").split("/")[-1]
+
+    parts = query.lower().replace(".", " ").replace("_", " ").replace("-", " ").split()
+
+    if len(parts) == 1:
+        return [parts[0]]
+
+    first, last = parts[0], parts[-1]
+    middle = parts[1] if len(parts) > 2 else ""
+
+    variants = list(dict.fromkeys([
+        f"{first}{last}",
+        f"{first}.{last}",
+        f"{first}_{last}",
+        f"{last}{first}",
+        f"{last}.{first}",
+        f"{first[0]}{last}",
+        f"{first[0]}.{last}",
+        f"{first[0]}_{last}",
+        f"{first}{last[0]}",
+        f"{first}.{last[0]}",
+        f"{first}",
+        f"{last}",
+        f"{first}{middle}{last}" if middle else None,
+        f"{first[0]}{middle[0]}{last}" if middle else None,
+    ]))
+    return [v for v in variants if v]
     sect(f"Username Search — {username}")
     # put username here not your own obv lol
     # checks like 30 platforms at once to see if the username exists
@@ -3738,11 +3771,20 @@ def dispatch(choice):
     elif c == "54": results["urlscan"]     = mod_urlscan(target, session)
     elif c == "55": results["hibp"]        = mod_hibp(domain, session)
     elif c in ("60","username"):
-        target_username = input(f"  {R}└──▶{RE} {W}Username to search: {RE}").strip()
+        target_username = input(f"  {R}└──▶{RE} {W}Username or full name: {RE}").strip()
         if not target_username:
             warn("No username provided")
         else:
-            results["username_search"] = mod_username_search(target_username, session)
+            variants = _generate_username_variants(target_username)
+            if len(variants) > 1:
+                info(f"Full name detected — searching {BR}{len(variants)}{RE} variants")
+                all_found = []
+                for v in variants:
+                    found = mod_username_search(v, session)
+                    all_found.extend(found)
+                results["username_search"] = all_found
+            else:
+                results["username_search"] = mod_username_search(variants[0], session)
 
     elif c in ("61","emailosint"):
         target_email = input(f"  {R}└──▶{RE} {W}Email address: {RE}").strip()
@@ -3910,11 +3952,22 @@ def _social_loop():
             break
 
         elif raw in ("60","username"):
-            target_username = input(f"  {R}└──▶{RE} {W}Username to search: {RE}").strip()
+            target_username = input(f"  {R}└──▶{RE} {W}Username or full name: {RE}").strip()
             if not target_username:
                 warn("No username provided")
             else:
-                mod_username_search(target_username, session)
+                variants = _generate_username_variants(target_username)
+                if len(variants) > 1:
+                    info(f"Full name detected — searching {BR}{len(variants)}{RE} username variants")
+                    for v in variants:
+                        info(f"  {DIM}trying: {v}")
+                    all_found = []
+                    for v in variants:
+                        found = mod_username_search(v, session)
+                        all_found.extend(found)
+                    info(f"Total found across all variants: {BR}{len(all_found)}")
+                else:
+                    mod_username_search(variants[0], session)
             input(f"\n  {DIM}Press Enter to return...{RE}")
 
         elif raw in ("61","emailosint"):
