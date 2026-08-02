@@ -1,0 +1,42 @@
+# ── FlowOsint output files ────────────────────────────────────────────────────
+flowoosint_*.json
+flowoosint_*.md
+flowoosint_*.duckdb
+flowoosint_*_log.txt
+
+# ── Virtual environment ───────────────────────────────────────────────────────
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# ── Python cache ──────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# ── Distribution / packaging ──────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+*.egg
+
+# ── OS junk ───────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor files ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Secrets / env vars ────────────────────────────────────────────────────────
+.env
+*.env
+secrets.txt
+config.local.*
