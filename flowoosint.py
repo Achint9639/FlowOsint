@@ -1993,6 +1993,57 @@ def mod_doc_metadata(links, session):
 
 
 
+SOCIAL_PLATFORMS = [
+    {"name": "GitHub",        "url": "https://github.com/{}",                     "ok": 200, "not_found": 404},
+    {"name": "Twitter/X",     "url": "https://twitter.com/{}",                    "ok": 200, "not_found": 404},
+    {"name": "Instagram",     "url": "https://www.instagram.com/{}/",             "ok": 200, "not_found": 404},
+    {"name": "Reddit",        "url": "https://www.reddit.com/user/{}",            "ok": 200, "not_found": 404},
+    {"name": "TikTok",        "url": "https://www.tiktok.com/@{}",               "ok": 200, "not_found": 404},
+    {"name": "LinkedIn",      "url": "https://www.linkedin.com/in/{}",           "ok": 200, "not_found": 404},
+    {"name": "YouTube",       "url": "https://www.youtube.com/@{}",              "ok": 200, "not_found": 404},
+    {"name": "Twitch",        "url": "https://www.twitch.tv/{}",                 "ok": 200, "not_found": 404},
+    {"name": "Pinterest",     "url": "https://www.pinterest.com/{}/",            "ok": 200, "not_found": 404},
+    {"name": "Telegram",      "url": "https://t.me/{}",                          "ok": 200, "not_found": 404},
+    {"name": "Steam",         "url": "https://steamcommunity.com/id/{}",         "ok": 200, "not_found": 404},
+    {"name": "Pastebin",      "url": "https://pastebin.com/u/{}",                "ok": 200, "not_found": 404},
+    {"name": "HackerOne",     "url": "https://hackerone.com/{}",                 "ok": 200, "not_found": 404},
+    {"name": "Bugcrowd",      "url": "https://bugcrowd.com/{}",                  "ok": 200, "not_found": 404},
+    {"name": "Dev.to",        "url": "https://dev.to/{}",                        "ok": 200, "not_found": 404},
+    {"name": "Medium",        "url": "https://medium.com/@{}",                   "ok": 200, "not_found": 404},
+    {"name": "Hashnode",      "url": "https://hashnode.com/@{}",                 "ok": 200, "not_found": 404},
+    {"name": "GitLab",        "url": "https://gitlab.com/{}",                    "ok": 200, "not_found": 404},
+    {"name": "Bitbucket",     "url": "https://bitbucket.org/{}",                 "ok": 200, "not_found": 404},
+    {"name": "Keybase",       "url": "https://keybase.io/{}",                    "ok": 200, "not_found": 404},
+    {"name": "Gravatar",      "url": "https://en.gravatar.com/{}",               "ok": 200, "not_found": 404},
+    {"name": "Fiverr",        "url": "https://www.fiverr.com/{}",                "ok": 200, "not_found": 404},
+    {"name": "Replit",        "url": "https://replit.com/@{}",                   "ok": 200, "not_found": 404},
+    {"name": "HuggingFace",   "url": "https://huggingface.co/{}",                "ok": 200, "not_found": 404},
+    {"name": "DockerHub",     "url": "https://hub.docker.com/u/{}",              "ok": 200, "not_found": 404},
+    {"name": "npm",           "url": "https://www.npmjs.com/~{}",                "ok": 200, "not_found": 404},
+    {"name": "PyPI",          "url": "https://pypi.org/user/{}",                 "ok": 200, "not_found": 404},
+    {"name": "Codecademy",    "url": "https://www.codecademy.com/profiles/{}",   "ok": 200, "not_found": 404},
+    {"name": "Tryhackme",     "url": "https://tryhackme.com/p/{}",               "ok": 200, "not_found": 404},
+    {"name": "HackTheBox",    "url": "https://app.hackthebox.com/users/{}",      "ok": 200, "not_found": 404},
+]
+
+def _social_check_one(platform: dict, username: str, rs) -> dict | None:
+    url = platform["url"].format(username)
+    try:
+        r = rs.get(url, timeout=8, verify=False, allow_redirects=True)
+        if r.status_code == platform["ok"]:
+            not_found_clues = [
+                "page not found", "user not found", "doesn't exist",
+                "no user found", "404", "this account", "not available",
+            ]
+            body = r.text.lower()
+            if any(c in body for c in not_found_clues):
+                return None
+            return {"platform": platform["name"], "url": url, "status": r.status_code}
+    except Exception:
+        pass
+    return None
+
+
 def mod_shodan(domain, session):
     """
     Shodan InternetDB — free, no API key required.
