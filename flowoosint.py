@@ -303,6 +303,17 @@ MENU_PAGES = {
             ]),
         ]
     },
+    4: {
+        "cols": [
+            ("Social OSINT", [
+                ("60","Username Search"),
+                ("61","Email OSINT"),
+                ("62","GitHub User OSINT"),
+            ]),
+            ("", []),
+            ("", []),
+        ]
+    },
 }
 
 _current_page = [1]
@@ -332,7 +343,7 @@ def draw_menu():
 
     pg    = _current_page[0]
     nav   = f"{R}[{W}I{R}] Info   [{W}S{R}] Settings   [{W}00{R}] Exit"
-    nav_r = f"Page {pg}/3  [{W}N{R}] Next ▶{RE}"
+    nav_r = f"Page {pg}/4  [{W}N{R}] Next ▶{RE}"
     total_nav = len(_ANSI_RE.sub("", nav + nav_r))
     gap = max(1, W_term - total_nav - 2)
     print(f"  {nav}{' '*gap}{nav_r}")
@@ -563,6 +574,8 @@ EXTS = ["",".php",".html",".htm",".txt",".bak",".zip",".env",
 
 def mod_dirbust(base, session, threads=25, wordlist=None):
     sect("Directory & File Discovery")
+    # bro if this finds admin panel its over for them fr
+    # this function just brute forces paths like /admin /backup /.env etc
     words = wordlist or DIRS
     q = queue.Queue()
     for w in words:
@@ -622,6 +635,7 @@ SUBS = [
 
 def mod_subdomains(domain, session):
     sect("Subdomain Probe")
+    # staging.target.com hits different ngl
     reg = extract_domain(domain)
     found_list = []
     q = queue.Queue()
@@ -930,6 +944,7 @@ JS_PATTERNS = {
 
 def mod_js(scripts, session):
     sect("JavaScript Intelligence — Secrets & Endpoints")
+    # devs really just leave aws keys in prod js files 💀
     result  = []
     rejected = 0
 
@@ -1270,6 +1285,7 @@ def mod_fingerprint(base, session):
 
 def mod_waf(base, session):
     sect("WAF / CDN Detection")
+    # cloudflare detected = skill issue for us not gonna lie
     r = get(session, base)
     if not r: err("Unreachable"); return []
     h   = {k.lower():v.lower() for k,v in r.headers.items()}
@@ -1345,6 +1361,7 @@ def mod_whois(domain):
 
 def mod_ssl(domain):
     sect("SSL / TLS Certificate Inspector")
+    # expired cert = instant report on bugcrowd lol
     import ssl, socket as sk
     try:
         ctx = ssl.create_default_context()
@@ -1486,6 +1503,7 @@ def mod_open_redirect(base, session):
 
 def mod_sqli(base, session):
     sect("SQLi Error Probe (passive)")
+    # if this pops a mysql error the dev is cooked 💀
     payloads = ["'","\"","' OR '1'='1","' OR 1=1--","\" OR \"1\"=\"1"]
     db_errors = [
         r"sql syntax","mysql_fetch",r"ORA-\d{5}","Microsoft OLE DB",
@@ -1512,6 +1530,7 @@ def mod_sqli(base, session):
 
 def mod_emails(links, session):
     sect("Email Harvester")
+    # people really just put their emails on every page lmaooo
     emails  = set()
     ep      = re.compile(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}')
     targets = links[:80]
@@ -1566,6 +1585,7 @@ def mod_emails(links, session):
 
 def mod_ports(domain):
     sect("Open Ports Scanner (top 25)")
+    # mongodb on port 27017 with no auth is so cooked
     top_ports = [21,22,23,25,53,80,110,111,135,139,143,443,445,
                  993,995,1723,3306,3389,5900,8080,8443,8888,27017,6379,5432]
     try:
@@ -2046,6 +2066,8 @@ def _social_check_one(platform: dict, username: str, rs) -> dict | None:
 
 def mod_username_search(username: str, session):
     sect(f"Username Search — {username}")
+    # put username here not your own obv lol
+    # checks like 30 platforms at once to see if the username exists
     rs      = getattr(session, "_requests_session", None)
     if not rs:
         err("No requests session available"); return []
@@ -2104,6 +2126,7 @@ def mod_username_search(username: str, session):
 
 def mod_email_osint(email: str, session):
     sect(f"Email OSINT — {email}")
+    # if hibp returns breaches its already too late for them
     rs = getattr(session, "_requests_session", None)
     if not rs:
         err("No requests session available"); return {}
@@ -2182,6 +2205,8 @@ def mod_email_osint(email: str, session):
 
 def mod_github_user(username: str, session):
     sect(f"GitHub User OSINT — {username}")
+    # devs exposing their work email in commits is wild every time
+    # grabs profile repos and mines commit history for leaked emails
     rs = getattr(session, "_requests_session", None)
     if not rs:
         err("No requests session available"); return {}
@@ -2309,6 +2334,7 @@ def mod_shodan(domain, session):
     Source: https://internetdb.shodan.io
     """
     sect("Shodan InternetDB Lookup")
+    # free shodan hits different no cap
     try:
         ip = socket.gethostbyname(domain)
         info(f"Resolved {domain} → {W}{ip}")
@@ -3711,6 +3737,26 @@ def dispatch(choice):
     elif c == "53": results["greynoise"]   = mod_greynoise(domain, session)
     elif c == "54": results["urlscan"]     = mod_urlscan(target, session)
     elif c == "55": results["hibp"]        = mod_hibp(domain, session)
+    elif c in ("60","username"):
+        target_username = input(f"  {R}└──▶{RE} {W}Username to search: {RE}").strip()
+        if not target_username:
+            warn("No username provided")
+        else:
+            results["username_search"] = mod_username_search(target_username, session)
+
+    elif c in ("61","emailosint"):
+        target_email = input(f"  {R}└──▶{RE} {W}Email address: {RE}").strip()
+        if not target_email:
+            warn("No email provided")
+        else:
+            results["email_osint"] = mod_email_osint(target_email, session)
+
+    elif c in ("62","githubuser"):
+        gh_username = input(f"  {R}└──▶{RE} {W}GitHub username: {RE}").strip()
+        if not gh_username:
+            warn("No username provided")
+        else:
+            results["github_user"] = mod_github_user(gh_username, session)
     else:
         warn(f"Option '{c}' not recognised")
         return
@@ -3787,7 +3833,7 @@ def main():
             break
 
         elif raw in ("n","next"):
-            _current_page[0] = (_current_page[0] % 3) + 1
+            _current_page[0] = (_current_page[0] % 4) + 1
             banner()
 
         elif raw in ("i","info"):
