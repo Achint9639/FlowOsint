@@ -6,6 +6,12 @@
 
 No API keys required. No accounts. Just Python and a target you're authorised to test.
 
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Modules](https://img.shields.io/badge/Modules-55-red.svg)](README.md)
+
+**Contributors:** [@FlowThingy](https://github.com/FlowThingy) · [@jelloyfizz-jpg](https://github.com/jelloyfizz-jpg)
+
 ---
 
 ## Table of Contents
