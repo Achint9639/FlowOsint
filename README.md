@@ -328,7 +328,7 @@ The authors and contributors of FlowOsint accept no liability for misuse. If you
 
 ---
 
-*FlowOsint v3.0 — github.com/FlowThingy/FlowOsint*
+*FlowOsint v2.01 — github.com/FlowThingy/FlowOsint*
 
 ---
 
