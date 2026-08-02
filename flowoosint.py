@@ -154,7 +154,7 @@ def _write_log(raw: str):
     except Exception:
         pass
 
-_ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')   # compiled once, avoids FutureWarning
+_ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')   
 
 def _log(tag, col, msg):
     ts  = datetime.now().strftime("%H:%M:%S")
@@ -2177,6 +2177,128 @@ def mod_email_osint(email: str, session):
 
     info(f"Email OSINT done — {len(results['breaches'])} breach(es)  "
          f"{len(results['accounts'])} account(s) found")
+    return results
+
+
+def mod_github_user(username: str, session):
+    sect(f"GitHub User OSINT — {username}")
+    rs = getattr(session, "_requests_session", None)
+    if not rs:
+        err("No requests session available"); return {}
+
+    results = {"profile": {}, "repos": [], "emails": [], "sensitive_repos": []}
+
+    info(f"Fetching profile for {W}{username}")
+    try:
+        r = rs.get(f"https://api.github.com/users/{username}",
+                   headers={"Accept": "application/vnd.github+json"},
+                   timeout=10, verify=False)
+        if r.status_code == 404:
+            err(f"GitHub user '{username}' not found"); return {}
+        if r.status_code != 200:
+            warn(f"GitHub API returned {r.status_code}"); return {}
+
+        p = r.json()
+        results["profile"] = p
+
+        fields = [
+            ("Name",        p.get("name","")),
+            ("Bio",         p.get("bio","")),
+            ("Company",     p.get("company","")),
+            ("Location",    p.get("location","")),
+            ("Email",       p.get("email","")),
+            ("Blog",        p.get("blog","")),
+            ("Twitter",     p.get("twitter_username","")),
+            ("Followers",   str(p.get("followers",""))),
+            ("Following",   str(p.get("following",""))),
+            ("Public repos",str(p.get("public_repos",""))),
+            ("Created",     p.get("created_at","")[:10]),
+            ("Profile",     p.get("html_url","")),
+        ]
+        for label, val in fields:
+            if val:
+                hit(f"{Y}{label:<14}{RE}: {W}{val}")
+
+        if p.get("email"):
+            results["emails"].append({"source": "profile", "email": p["email"]})
+
+    except Exception as e:
+        err(f"GitHub profile fetch failed: {e}"); return {}
+
+    info(f"Fetching repositories for {W}{username}")
+    try:
+        r = rs.get(
+            f"https://api.github.com/users/{username}/repos?per_page=100&sort=updated",
+            headers={"Accept": "application/vnd.github+json"},
+            timeout=10, verify=False
+        )
+        if r.status_code == 200:
+            repos = r.json()
+            results["repos"] = repos
+
+            sensitive_names = [
+                "dotfiles","config","secrets","private","credentials",
+                "backup","keys","passwords","token","api","env","hidden"
+            ]
+
+            t = _RTable(box=_rbox.SIMPLE, style="dim", header_style="bold red")
+            t.add_column("Repository", style="bold white", width=35)
+            t.add_column("Stars", style="yellow", width=6)
+            t.add_column("Language", style="cyan", width=14)
+            t.add_column("Updated", style="dim white", width=12)
+
+            for repo in repos[:20]:
+                name     = repo.get("name","")
+                stars    = str(repo.get("stargazers_count",0))
+                lang     = repo.get("language","") or ""
+                updated  = (repo.get("updated_at","") or "")[:10]
+                is_fork  = repo.get("fork", False)
+                t.add_row(
+                    f"{'[fork] ' if is_fork else ''}{name}",
+                    stars, lang, updated
+                )
+                for kw in sensitive_names:
+                    if kw in name.lower():
+                        hit(f"{BR}Sensitive repo name{RE}: {W}{repo.get('html_url','')}")
+                        results["sensitive_repos"].append(repo.get("html_url",""))
+                        break
+
+            _rc.print(t)
+            info(f"Total public repos: {BR}{len(repos)}")
+
+    except Exception as e:
+        warn(f"Repo fetch failed: {e}")
+
+    info(f"Mining commit history for email addresses")
+    try:
+        r = rs.get(
+            f"https://api.github.com/users/{username}/events/public?per_page=100",
+            headers={"Accept": "application/vnd.github+json"},
+            timeout=10, verify=False
+        )
+        if r.status_code == 200:
+            events = r.json()
+            seen_emails = set()
+            ep = re.compile(r'[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}')
+            for event in events:
+                if event.get("type") != "PushEvent": continue
+                for commit in event.get("payload",{}).get("commits",[]):
+                    author = commit.get("author",{})
+                    email  = author.get("email","")
+                    name   = author.get("name","")
+                    if email and email not in seen_emails:
+                        if "noreply" not in email:
+                            seen_emails.add(email)
+                            hit(f"{G}[COMMIT EMAIL]{RE} {W}{email}{RE}  {DIM}({name})")
+                            results["emails"].append({"source": "commit", "email": email, "name": name})
+            if not seen_emails:
+                info("No email addresses found in public commit history")
+    except Exception as e:
+        warn(f"Event mining failed: {e}")
+
+    info(f"GitHub OSINT done — {len(results['repos'])} repos  "
+         f"{len(results['emails'])} email(s)  "
+         f"{len(results['sensitive_repos'])} sensitive repo(s)")
     return results
 
 
