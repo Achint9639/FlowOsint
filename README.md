@@ -80,7 +80,7 @@ run.bat
 
 **Windows (WSL / Ubuntu terminal) or Linux / macOS:**
 ```bash
-chmod +x run.sh && ./run.sh
+bash run.sh
 ```
 
 **What happens on first launch:**
