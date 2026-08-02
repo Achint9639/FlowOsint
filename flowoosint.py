@@ -297,10 +297,7 @@ MENU_PAGES = {
                 ("52","Encode / Decode Base64"),
                 ("53","Extract All URLs"),
             ]),
-            ("System", [
-                ("98","Settings"),
-                ("00","Exit"),
-            ]),
+            ("", []),
         ]
     },
     4: {
@@ -311,7 +308,10 @@ MENU_PAGES = {
                 ("62","GitHub User OSINT"),
             ]),
             ("", []),
-            ("", []),
+            ("System", [
+                ("98","Settings"),
+                ("00","Exit"),
+            ]),
         ]
     },
 }
@@ -3815,37 +3815,63 @@ def main():
     CFG["session"] = mk_session(timeout=CFG["timeout"])
 
     while True:
+        print()
+        print(ctr(f"{R}┌{'─'*30}┐{RE}"))
+        print(ctr(f"{R}│{RE}  {Y}What do you want to do today?{RE}   {R}│{RE}"))
+        print(ctr(f"{R}├{'─'*30}┤{RE}"))
+        print(ctr(f"{R}│{RE}  {W}[1]{RE} Web / Domain Recon         {R}│{RE}"))
+        print(ctr(f"{R}│{RE}  {W}[2]{RE} Social Media & Person OSINT {R}│{RE}"))
+        print(ctr(f"{R}│{RE}  {W}[0]{RE} Exit                        {R}│{RE}"))
+        print(ctr(f"{R}└{'─'*30}┘{RE}"))
+        print()
+        mode = input(
+            f"  {R}┌─[{W}FlowOsint{R}]─[{W}v2.01{R}]{RE}\n"
+            f"  {R}└──▶{RE} {W}Select mode: {RE}"
+        ).strip()
+
+        if mode in ("0","00","exit","quit","q"):
+            sep()
+            print(ctr(f"{BR}Thank you for using FlowOsint. Stay ethical.{RE}"))
+            sep()
+            time.sleep(0.5)
+            break
+        elif mode == "1":
+            _web_recon_loop()
+        elif mode == "2":
+            _social_loop()
+        else:
+            warn("Pick 1 or 2")
+            banner()
+
+
+def _web_recon_loop():
+    while True:
+        banner()
         draw_menu()
 
         if CFG["target"]:
             print(ctr(f"{DIM}{W}target: {BR}{CFG['target']}{RE}"))
 
         raw = input(
-            f"  {R}┌─[{W}FlowOsint{R}]─[{W}v2.01{R}]{RE}\n"
+            f"  {R}┌─[{W}FlowOsint{R}]─[{W}Web Recon{R}]{RE}\n"
             f"  {R}└──▶{RE} {W}Select option: {RE}"
         ).strip().lower()
 
-        if raw in ("00","0","exit","quit","q"):
-            sep()
-            print(ctr(f"{BR}Thank you for using FlowOsint. Stay ethical.{RE}"))
-            sep()
-            time.sleep(0.5)
+        if raw in ("00","0","exit","quit","q","back","b"):
+            banner()
             break
 
         elif raw in ("n","next"):
             _current_page[0] = (_current_page[0] % 4) + 1
-            banner()
 
         elif raw in ("i","info"):
             show_info()
-            input(f"\n  {DIM}Press Enter to return to menu...{RE}")
-            banner()
+            input(f"\n  {DIM}Press Enter to return...{RE}")
 
         elif raw in ("s","98","settings"):
             banner()
             show_settings()
             time.sleep(0.5)
-            banner()
 
         else:
             real = _COMPACT_REMAP.get(raw, raw)
@@ -3857,7 +3883,58 @@ def main():
                 err(f"Module error: {e}")
                 import traceback; traceback.print_exc()
             input(f"\n  {DIM}Press Enter to return to menu...{RE}")
+
+
+def _social_loop():
+    session = CFG["session"]
+    while True:
+        banner()
+        print()
+        print(ctr(f"{R}┌{'─'*34}┐{RE}"))
+        print(ctr(f"{R}│{RE}  {BR}{BOLD}Social Media & Person OSINT{RE}      {R}│{RE}"))
+        print(ctr(f"{R}├{'─'*34}┤{RE}"))
+        print(ctr(f"{R}│{RE}  {R}[{W}60{R}]{RE} Username Search (30+ platforms) {R}│{RE}"))
+        print(ctr(f"{R}│{RE}  {R}[{W}61{R}]{RE} Email OSINT                     {R}│{RE}"))
+        print(ctr(f"{R}│{RE}  {R}[{W}62{R}]{RE} GitHub User OSINT               {R}│{RE}"))
+        print(ctr(f"{R}│{RE}  {R}[{W}00{R}]{RE} Back                            {R}│{RE}"))
+        print(ctr(f"{R}└{'─'*34}┘{RE}"))
+        print()
+
+        raw = input(
+            f"  {R}┌─[{W}FlowOsint{R}]─[{W}Social OSINT{R}]{RE}\n"
+            f"  {R}└──▶{RE} {W}Select option: {RE}"
+        ).strip().lower()
+
+        if raw in ("00","0","back","b","exit","q"):
             banner()
+            break
+
+        elif raw in ("60","username"):
+            target_username = input(f"  {R}└──▶{RE} {W}Username to search: {RE}").strip()
+            if not target_username:
+                warn("No username provided")
+            else:
+                mod_username_search(target_username, session)
+            input(f"\n  {DIM}Press Enter to return...{RE}")
+
+        elif raw in ("61","emailosint"):
+            target_email = input(f"  {R}└──▶{RE} {W}Email address: {RE}").strip()
+            if not target_email:
+                warn("No email provided")
+            else:
+                mod_email_osint(target_email, session)
+            input(f"\n  {DIM}Press Enter to return...{RE}")
+
+        elif raw in ("62","githubuser"):
+            gh_username = input(f"  {R}└──▶{RE} {W}GitHub username: {RE}").strip()
+            if not gh_username:
+                warn("No username provided")
+            else:
+                mod_github_user(gh_username, session)
+            input(f"\n  {DIM}Press Enter to return...{RE}")
+
+        else:
+            warn(f"Option '{raw}' not recognised")
 
 
 if __name__ == "__main__":
