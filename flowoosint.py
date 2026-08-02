@@ -2098,6 +2098,9 @@ def _generate_username_variants(query: str) -> list:
         f"{first[0]}{middle[0]}{last}" if middle else None,
     ]))
     return [v for v in variants if v]
+
+
+def mod_username_search(username: str, session):
     sect(f"Username Search — {username}")
     # put username here not your own obv lol
     # checks like 30 platforms at once to see if the username exists
