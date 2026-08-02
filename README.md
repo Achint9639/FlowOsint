@@ -1,20 +1,8 @@
 # FlowOsint
 
-```
-  █████▒  ██▓    ▒█████   █     █░ ▒█████    ██████  ██▓  ███▄    █  ▄▄▄█████▓
-  ▓██   ▒ ▓██▒  ▒██▒  ██▒▓█░ █ ░█░▒██▒  ██▒▒██    ▒ ▓██▒  ██ ▀█   █  ▓  ██▒ ▓▒
-  ▒████ ░ ▒██░  ▒██░  ██▒▒█░ █ ░█ ▒██░  ██▒░ ▓██▄   ▒██▒ ▓██  ▀█ ██▒ ▒ ▓██░ ▒░
-  ░▓█▒  ░ ▒██░  ▒██   ██░░█░ █ ░█ ▒██   ██░  ▒   ██▒░██░ ▓██▒  ▐▌██▒ ░ ▓██▓ ░
-  ░▒█░   ░██████░ ████▓▒░░░██▒██▓ ░ ████▓▒░▒██████▒▒░██░ ▒██░   ▓██░   ▒██▒ ░
-   ▒ ░   ░ ▒░▓  ░ ▒░▒░▒░  ░ ▓░▒ ▒  ░ ▒░▒░▒░ ▒ ▒▓▒ ▒ ░░▓   ░ ▒░   ▒ ▒    ▒ ░░
-   ░     ░ ░ ▒  ░ ░ ▒ ▒░    ▒ ░ ░    ░ ▒ ▒░ ░ ░▒  ░ ░ ▒ ░ ░ ░░   ░ ▒░     ░
-   ░ ░     ░ ░  ░ ░ ░ ▒     ░   ░  ░ ░ ░ ▒  ░  ░  ░   ▒ ░    ░   ░ ░    ░
-              ░      ░ ░       ░        ░ ░        ░   ░           ░
-```
+![FlowOsint](banner.png)
 
 **Advanced Web Reconnaissance & OSINT Tool**
-
-FlowOsint is an all-in-one web reconnaissance framework built for security researchers, penetration testers, and bug bounty hunters. Point it at a target and it automatically maps the attack surface — subdomains, hidden files, exposed secrets, misconfigurations, open ports, breach history, and more — all from a single interactive terminal menu.
 
 No API keys required. No accounts. Just Python and a target you're authorised to test.
 
